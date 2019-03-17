@@ -96,5 +96,45 @@ public class NFLPlayer {
         }
         return player;
     }
+    
+               public static ObservableList<NFLPlayer> ListAll(Connection con) throws SQLException{
+        ObservableList<NFLPlayer> players = FXCollections.observableArrayList();
+        PreparedStatement query = null;
+
+        try {
+            query = con.prepareStatement(
+                "select p.pid, p.tid, p.name, " +
+                "p.pos, p.ypg, p.td, p.int, p.heightIn, p.weightLb, p.speed "
+                        + "from group15.NFLPlayer p");
+            ResultSet rs = (ResultSet) query.executeQuery();
+            while (rs.next()) {
+                NFLPlayer player = new NFLPlayer();
+                player.Pid = rs.getInt("pid");
+                player.Name = rs.getString("name");
+                player.Tid = rs.getInt("tid");
+                player.TDS = rs.getInt("td");
+                player.INTS = rs.getInt("int");
+                player.YPG = rs.getDouble("ypg");
+                player.Height = rs.getDouble("heightIn");
+                player.Weight = rs.getDouble("weightLb");
+                player.Speed = rs.getDouble("speed");
+
+                players.add(player);
+            }
+        } catch (SQLException e ) {
+            System.err.println("SQLException information");
+            while(e != null){
+                System.err.println("Error message: " + e.getMessage());
+                System.err.println("SQLSTATE: " + e.getSQLState());
+                System.err.println("Error Code: " + e.getErrorCode());
+                e.printStackTrace();
+                e = e.getNextException();
+            }
+        } finally {
+            if (query != null) { query.close(); }
+        }
+        System.out.println(players.size());
+        return players;
+    }
 
 }
