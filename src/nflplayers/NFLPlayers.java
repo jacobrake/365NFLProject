@@ -67,11 +67,62 @@ public class NFLPlayers extends Application {
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        Button viewPlayersBtn = new Button("View Players");
+        viewPlayersBtn.setTranslateY(40);
+        viewPlayersBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Scene NFLPlayerScene;
+                NFLPlayerScene = GetNFLPlayerScene();
+                primaryStage.setScene(NFLPlayerScene);
+            }
+        });
+
+        root.getChildren().add(viewPlayersBtn);
+
     }
     public static void main(String[] args) {
         launch(args);
     }
-    
+
+    public static Scene GetNFLPlayerScene() {
+        GridPane pane = new GridPane();
+        pane.setPadding(new Insets(100, 100, 100, 100));
+        Scene s = new Scene(pane, 700, 700);
+
+        TableView playerTable = new TableView();
+
+        TableColumn pidCol = new TableColumn("PID");
+        pidCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("Pid"));
+
+        TableColumn nameCol = new TableColumn("Name");
+        nameCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, String>("Name"));
+
+        TableColumn teamCol = new TableColumn("Team");
+        teamCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("Tid"));
+
+        TableColumn posCol = new TableColumn("Position");
+        posCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, String>("Position"));
+
+        TableColumn ypgCol = new TableColumn("YPG");
+        ypgCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Double>("YPG"));
+
+        TableColumn tdCol = new TableColumn("TDs");
+        tdCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("TDS"));
+
+        playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol);
+        GridPane.setConstraints(playerTable, 0, 5);
+        pane.getChildren().addAll(playerTable);
+        return s;
+    }
+
     public static Scene GetFantasyTeamScene(){
         GridPane pane = new GridPane();
         pane.setPadding(new Insets(100, 100, 100, 100));
@@ -125,7 +176,7 @@ public class NFLPlayers extends Application {
         teamNameCol.setMinWidth(100);
         teamNameCol.setCellValueFactory(
                 new PropertyValueFactory<FantasyTeam, String>("Name"));
- 
+
         TableColumn ownerCol = new TableColumn("Owner Name");
         ownerCol.setMinWidth(100);
         ownerCol.setCellValueFactory(
