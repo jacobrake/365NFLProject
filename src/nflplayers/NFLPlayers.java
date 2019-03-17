@@ -89,7 +89,7 @@ public class NFLPlayers extends Application {
     public static Scene GetNFLPlayerScene() {
         GridPane pane = new GridPane();
         pane.setPadding(new Insets(100, 100, 100, 100));
-        Scene s = new Scene(pane, 700, 700);
+        Scene s = new Scene(pane, 900, 700);
 
         TableView playerTable = new TableView();
 
@@ -121,7 +121,7 @@ public class NFLPlayers extends Application {
         intCol.setCellValueFactory(
                 new PropertyValueFactory<NFLPlayer, Integer>("INTS"));
 
-        playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol);
+        playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol, intCol);
         GridPane.setConstraints(playerTable, 0, 5);
         pane.getChildren().addAll(playerTable);
         return s;
