@@ -29,6 +29,28 @@ public class NFLPlayer {
     double Height;
     double Weight;
     double Speed;
+
+    public Integer getPid() {
+        return Pid;
+    }
+    public String getName() {
+        return this.Name;
+    }
+    public Integer getTid() {
+        return this.Tid;
+    }
+    public String getPosition() {
+        return this.Position;
+    }
+    public Double getYPG() {
+        return this.YPG;
+    }
+    public Integer getTDS() {
+        return this.TDS;
+    }
+    public Integer getINTS() {
+        return this.INTS;
+    }
     
     public static NFLPlayer GetById(Connection con, int id) throws SQLException{
         NFLPlayer player = new NFLPlayer();
@@ -45,6 +67,7 @@ public class NFLPlayer {
                 player.Pid = rs.getInt("pid");
                 player.Name = rs.getString("name");
                 player.Tid = rs.getInt("tid");
+                player.Position = rs.getString("pos");
                 player.TDS = rs.getInt("td");
                 player.INTS = rs.getInt("int");
                 player.YPG = rs.getDouble("ypg");
@@ -82,6 +105,7 @@ public class NFLPlayer {
                 player.Pid = rs.getInt("pid");
                 player.Name = rs.getString("name");
                 player.Tid = rs.getInt("tid");
+                player.Position = rs.getString("pos");
                 player.TDS = rs.getInt("td");
                 player.INTS = rs.getInt("int");
                 player.YPG = rs.getDouble("ypg");
@@ -105,6 +129,7 @@ public class NFLPlayer {
     }
     
         public static ObservableList<NFLPlayer> ListAll(Connection con) throws SQLException{
+
             ObservableList<NFLPlayer> players = FXCollections.observableArrayList();
             PreparedStatement query = null;
 
@@ -119,13 +144,14 @@ public class NFLPlayer {
                     player.Pid = rs.getInt("pid");
                     player.Name = rs.getString("name");
                     player.Tid = rs.getInt("tid");
+                    player.Position = rs.getString("pos");
                     player.TDS = rs.getInt("td");
                     player.INTS = rs.getInt("int");
                     player.YPG = rs.getDouble("ypg");
                     player.Height = rs.getDouble("heightIn");
                     player.Weight = rs.getDouble("weightLb");
                     player.Speed = rs.getDouble("speed");
-
+                    System.out.println(player.Pid + " " + player.Name + " " + player.Tid);
                     players.add(player);
                 }
             } catch (SQLException e ) {
@@ -143,5 +169,4 @@ public class NFLPlayer {
             System.out.println(players.size());
             return players;
         }
-
 }

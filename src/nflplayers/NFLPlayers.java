@@ -121,8 +121,18 @@ public class NFLPlayers extends Application {
         intCol.setCellValueFactory(
                 new PropertyValueFactory<NFLPlayer, Integer>("INTS"));
 
+        Alert a = new Alert(AlertType.ERROR);
+        ObservableList<NFLPlayer> playerData = null;
+        try {
+            playerData = NFLPlayer.ListAll(connect);
+        } catch(Exception e) {
+            a.setContentText("Error loading players");
+            System.err.println("Error loading players");
+            a.show();
+        }
+
+        playerTable.setItems(playerData);
         playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol, intCol);
-        GridPane.setConstraints(playerTable, 0, 5);
         pane.getChildren().addAll(playerTable);
         return s;
     }
@@ -201,6 +211,7 @@ public class NFLPlayers extends Application {
         row.setOnMouseClicked(event -> {
                 if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
                     && event.getClickCount() == 1) {
+
                     FantasyTeam clickedRow = row.getItem();
                     Button addPlayer = new Button();
                     GridPane.setConstraints(addPlayer, 2, 5);
