@@ -106,6 +106,7 @@ public class FantasyTeam {
                         excep.printStackTrace();
                         excep = excep.getNextException();
                     }
+                    throw excep;
                 }
             }
         } finally {

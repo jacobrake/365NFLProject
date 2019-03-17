@@ -204,7 +204,7 @@ public class NFLPlayers extends Application {
                     FantasyTeam clickedRow = row.getItem();
                     Button addPlayer = new Button();
                     GridPane.setConstraints(addPlayer, 2, 5);
-                    
+                    pane.getChildren().removeAll(addPlayer, playerName);
                     pane.getChildren().addAll(playerName, addPlayer);
                     addPlayer.setText("Add Player to team " + clickedRow.Name);
                     System.out.println("here");
