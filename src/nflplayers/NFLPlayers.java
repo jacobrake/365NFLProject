@@ -115,7 +115,11 @@ public class NFLPlayers extends Application {
 
         TableColumn tdCol = new TableColumn("TDs");
         tdCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("TDs"));
+                new PropertyValueFactory<NFLPlayer, Integer>("TDS"));
+
+        TableColumn intCol = new TableColumn("INTs");
+        intCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("INTS"));
 
         playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol);
         GridPane.setConstraints(playerTable, 0, 5);
