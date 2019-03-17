@@ -69,6 +69,9 @@ public class FantasyTeam {
     }
     public void AddPlayer(Connection con, int pid) throws SQLException{
         PreparedStatement createStatement = null;
+        if(Players == null){
+            Players = new ArrayList<NFLPlayer>();
+        }
         try{
             NFLPlayer player = NFLPlayer.GetById(con, pid);
             Players.add(player);
@@ -243,17 +246,20 @@ public class FantasyTeam {
                             + " where fttp.ftid = ?");
                 query2.setInt(1, team.FTid);
                 ResultSet rs2 = (ResultSet) query2.executeQuery();
+                if(team.Players == null){
+                    team.Players = new ArrayList<NFLPlayer>();
+                }
                 while (rs2.next()) {
                     NFLPlayer player = new NFLPlayer();
-                    player.Pid = rs.getInt("pid");
-                    player.Name = rs.getString("name");
-                    player.Tid = rs.getInt("tid");
-                    player.TDS = rs.getInt("td");
-                    player.INTS = rs.getInt("int");
-                    player.YPG = rs.getDouble("ypg");
-                    player.Height = rs.getDouble("heightIn");
-                    player.Weight = rs.getDouble("weightLb");
-                    player.Speed = rs.getDouble("speed");
+                    player.Pid = rs2.getInt("pid");
+                    player.Name = rs2.getString("name");
+                    player.Tid = rs2.getInt("tid");
+                    player.TDS = rs2.getInt("td");
+                    player.INTS = rs2.getInt("int");
+                    player.YPG = rs2.getDouble("ypg");
+                    player.Height = rs2.getDouble("heightIn");
+                    player.Weight = rs2.getDouble("weightLb");
+                    player.Speed = rs2.getDouble("speed");
                     team.Players.add(player);
                 }
                 teams.add(team);

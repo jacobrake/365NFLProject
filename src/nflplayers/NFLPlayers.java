@@ -208,7 +208,7 @@ public class NFLPlayers extends Application {
                     pane.getChildren().addAll(playerName, addPlayer);
                     addPlayer.setText("Add Player to team " + clickedRow.Name);
                     System.out.println("here");
-                    btn.setOnAction(new EventHandler<ActionEvent>() {
+                    addPlayer.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
                             try{
@@ -221,7 +221,11 @@ public class NFLPlayers extends Application {
                                 }else{
                                     try{
                                         clickedRow.AddPlayer(connect, player.Pid);
+                                        a.setAlertType(AlertType.CONFIRMATION);
+                                        a.setContentText("Successfully added " + player.Name + " to team " + clickedRow.Name);
+                                        a.show();
                                     }catch(Exception e1){
+                                        a.setAlertType(AlertType.ERROR);
                                         a.setContentText("Error adding player");
                                         System.err.println("Error adding player");
                                         a.show();
