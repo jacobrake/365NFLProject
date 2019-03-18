@@ -11,6 +11,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.sql.*;
 import java.util.ArrayList;
@@ -42,7 +43,12 @@ import javafx.scene.control.ComboBox;
 public class NFLPlayers extends Application {
 
     static Connection connect;
-    
+    Stage window;
+    Scene mainScene;
+    Scene fantasyScene;
+    Scene playerScene;
+    Scene compareScene;
+
     @Override
     public void start(Stage primaryStage) {
         
@@ -53,6 +59,238 @@ public class NFLPlayers extends Application {
             e.printStackTrace();
         }
         
+        window = primaryStage;
+        
+        //CREATE BUTTONS------------------------------------------------------------
+        Button newFantasyTeam = new Button("New Fantasy Team");
+        //newFantasyTeam.setOnAction(e -> window.setScene(fantasyScene));
+        newFantasyTeam.setTranslateX(275);
+        newFantasyTeam.setTranslateY(300);
+        newFantasyTeam.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                window.setScene(fantasyScene);
+                window.setTitle("Fantasy Teams");
+            }
+        });      
+        
+        Button viewPlayers = new Button("View Players");
+        viewPlayers.setTranslateX(292);
+        viewPlayers.setTranslateY(300);
+        viewPlayers.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                window.setScene(playerScene);
+                window.setTitle("NFL Players");
+            }
+        });  
+        
+        Button back = new Button("Back");
+        back.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                window.setScene(mainScene);
+                window.setTitle("Welcome");
+            }
+        }); 
+
+        
+        Button back2 = new Button("Back");
+        //back.setTranslateY(-300);
+        back2.setOnAction(e -> window.setScene(mainScene));
+        
+        //CREATE PLAYER TABLE--------------------------------------------------------
+        /*
+        ArrayList<String> cols = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("TeamName");
+                add("Position");
+                add("YPG");
+                add("TDS");
+                add("INTS");
+            }
+        };
+        ArrayList<String> colnames = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("Team");
+                add("Pos");
+                add("YPG");
+                add("TDs");
+                add("INTs");
+            }
+        };
+        
+        TableView playerTable = GetPlayerTable("%%", cols, colnames);
+        */
+        TableView playerTable = GetNFLPlayerTable();
+
+        //CREATE VBOXES AND SCENES----------------------------------------------------
+        VBox layoutMain = new VBox(20);
+        layoutMain.getChildren().addAll(newFantasyTeam, viewPlayers);
+        mainScene = new Scene(layoutMain, 700, 700);
+        
+        VBox layoutPlayer = new VBox(20);
+        layoutPlayer.getChildren().addAll(back, playerTable);
+        
+        playerScene = new Scene(layoutPlayer, 700, 700);
+        
+        VBox layoutFantasy = new VBox(10);
+        layoutFantasy.getChildren().add(back2);
+        
+        
+        //CREATE FANTASY PAGE----------------------------------------------------
+        
+        final TextField name = new TextField();
+        name.setPromptText("Enter your team name.");
+        GridPane.setConstraints(name, 0, 1);
+        layoutFantasy.getChildren().add(name);
+        
+        final TextField owner = new TextField();
+        owner.setPromptText("Enter team owner name.");
+        GridPane.setConstraints(owner, 0, 2);
+        layoutFantasy.getChildren().add(owner);
+        
+        Button btn = new Button();
+        btn.setText("Add Fantasy Team");
+        Alert a = new Alert(AlertType.ERROR);
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                FantasyTeam team = new FantasyTeam();
+                team.Name = name.getText();
+                team.Owner = owner.getText();
+                team.DefenseTid = 0;
+                try{
+                    team.CreateFantasyTeam(connect);
+                }catch(Exception e){
+                    a.setContentText("Error adding fantasy team");
+                    System.err.println("Error adding fantasy team");
+                    a.show();
+                }
+                a.setAlertType(AlertType.CONFIRMATION);
+                a.setHeaderText("Success");
+                a.setContentText("Successfully added team " + team.Name);
+                a.show();
+                owner.clear();
+                name.clear();
+            }
+        });
+        GridPane.setConstraints(btn, 1, 2);
+        layoutFantasy.getChildren().add(btn);
+        
+        
+        final Label label = new Label("Fantasy Teams");
+        label.setFont(new Font("Arial", 20));
+        GridPane.setConstraints(label, 0, 4);
+        
+        
+        TableView table = new TableView();
+        table.setEditable(false);
+        TableColumn teamNameCol = new TableColumn("Team Name");
+        teamNameCol.setMinWidth(100);
+        teamNameCol.setCellValueFactory(
+                new PropertyValueFactory<FantasyTeam, String>("Name"));
+
+        TableColumn ownerCol = new TableColumn("Owner Name");
+        ownerCol.setMinWidth(100);
+        ownerCol.setCellValueFactory(
+                new PropertyValueFactory<FantasyTeam, String>("Owner"));
+        ObservableList<FantasyTeam> ftData = null;
+        try{
+            ftData = FantasyTeam.ListAll(connect);
+        }catch(Exception e){
+            a.setContentText("Error loading fantasy teams");
+            System.err.println("Error loading fantasy teams");
+            a.show();
+        }
+        table.setRowFactory(tv -> {
+        TableRow<FantasyTeam> row = new TableRow<>();
+        final TextField playerName = new TextField();
+        playerName.setPromptText("Search for player to add");
+        GridPane.setConstraints(playerName, 1, 5);
+        row.setOnMouseClicked(event -> {
+                if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
+                    && event.getClickCount() == 1) {
+
+                    FantasyTeam clickedRow = row.getItem();
+                    Button addPlayer = new Button();
+                    GridPane.setConstraints(addPlayer, 2, 5);
+                    
+                    Button comparePlayers = new Button();
+                    GridPane.setConstraints(comparePlayers, 2, 6);
+                    comparePlayers.setText("Compare players to add");
+                    comparePlayers.setTranslateX(350);
+                    comparePlayers.setTranslateY(-35);
+                    comparePlayers.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                             primaryStage.setScene(GetComparePlayersScene(clickedRow));
+                        }
+                    });
+                    
+                    //took out adding comparePlayers
+                    layoutFantasy.getChildren().removeAll(addPlayer, playerName, comparePlayers);
+                    layoutFantasy.getChildren().addAll(playerName, addPlayer, comparePlayers);
+                    addPlayer.setText("Add Player to team " + clickedRow.Name);
+                    System.out.println("here");
+                    addPlayer.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try{
+                                System.out.println("here2");
+                                NFLPlayer player = NFLPlayer.GetByName(connect, playerName.getText());
+                                if(player.Pid == 0){
+                                    a.setHeaderText("Error");
+                                    a.setContentText("Player Not Found");
+                                    a.show();
+                                }else{
+                                    try{
+                                        clickedRow.AddPlayer(connect, player.Pid);
+                                        a.setAlertType(AlertType.CONFIRMATION);
+                                        a.setContentText("Successfully added " + player.Name + " to team " + clickedRow.Name);
+                                        a.show();
+                                    }catch(Exception e1){
+                                        a.setAlertType(AlertType.ERROR);
+                                        a.setContentText("Error adding player");
+                                        System.err.println("Error adding player");
+                                        a.show();
+                                    }
+                                }
+                            }catch(Exception e){
+                                a.setContentText("Error searching database for player");
+                                System.err.println("Error searching database for player");
+                                a.show();
+                            }
+                            playerName.clear();
+                        }
+                    });
+                }
+            });
+            return row ;
+        });
+        table.setItems(ftData);
+        table.getColumns().addAll(teamNameCol, ownerCol);
+        GridPane.setConstraints(table, 0, 5);
+        
+        layoutFantasy.getChildren().addAll(label, table);        
+        fantasyScene = new Scene(layoutFantasy, 700, 700);
+        
+        //COMPARE PLAYERS SCENE--------------------------------------------------------
+
+ 
+        //SET STARTUP WINDOW--------------------------------------------------------
+        window.setScene(mainScene);
+        window.setTitle("Welcome");
+        window.show();
+        
+        /*
         Button btn = new Button();
         btn.setText("New Fantasy Team");
         btn.setOnAction(new EventHandler<ActionEvent>() {
@@ -86,11 +324,64 @@ public class NFLPlayers extends Application {
         });
 
         root.getChildren().add(viewPlayersBtn);
+        */
 
     }
     public static void main(String[] args) {
         launch(args);
     }
+    
+    public static TableView GetNFLPlayerTable() {
+        GridPane pane = new GridPane();
+        pane.setPadding(new Insets(100, 100, 100, 100));
+        Scene s = new Scene(pane, 900, 700);
+
+        TableView playerTable = new TableView();
+
+        TableColumn pidCol = new TableColumn("PID");
+        pidCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("Pid"));
+
+        TableColumn nameCol = new TableColumn("Name");
+        nameCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, String>("Name"));
+
+        TableColumn teamCol = new TableColumn("Team");
+        teamCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("Tid"));
+
+        TableColumn posCol = new TableColumn("Position");
+        posCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, String>("Position"));
+
+        TableColumn ypgCol = new TableColumn("YPG");
+        ypgCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Double>("YPG"));
+
+        TableColumn tdCol = new TableColumn("TDs");
+        tdCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("TDS"));
+
+        TableColumn intCol = new TableColumn("INTs");
+        intCol.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>("INTS"));
+
+        Alert a = new Alert(AlertType.ERROR);
+        ObservableList<NFLPlayer> playerData = null;
+        try {
+            playerData = NFLPlayer.ListAllPlayers(connect);
+        } catch(Exception e) {
+            a.setContentText("Error loading players");
+            System.err.println("Error loading players");
+            a.show();
+        }
+
+        playerTable.setItems(playerData);
+        playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol, intCol);
+        return playerTable;
+    }
+
+    
 
     public static Scene GetNFLPlayerScene() {
         GridPane pane = new GridPane();
@@ -122,6 +413,7 @@ public class NFLPlayers extends Application {
         pane.getChildren().addAll(playerTable);
         return s;
     }
+    
     public static TableView GetPlayerTable(String pos, ArrayList<String> cols, ArrayList<String> colnames){
         TableView playerTable = new TableView();
         for(int i = 0; i < cols.size(); i++){
