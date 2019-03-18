@@ -13,6 +13,9 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import java.sql.*;
+import java.util.ArrayList;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -22,10 +25,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
 
 
 
@@ -54,7 +60,7 @@ public class NFLPlayers extends Application {
             @Override
             public void handle(ActionEvent event) {
                 Scene fantasyTeamScene;
-                fantasyTeamScene = GetFantasyTeamScene();
+                fantasyTeamScene = GetFantasyTeamScene(primaryStage);
                 primaryStage.setScene(fantasyTeamScene);
             }
         });
@@ -90,41 +96,44 @@ public class NFLPlayers extends Application {
         GridPane pane = new GridPane();
         pane.setPadding(new Insets(100, 100, 100, 100));
         Scene s = new Scene(pane, 900, 700);
-
+        ArrayList<String> cols = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("TeamName");
+                add("Position");
+                add("YPG");
+                add("TDS");
+                add("INTS");
+            }
+        };
+        ArrayList<String> colnames = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("Team");
+                add("Pos");
+                add("YPG");
+                add("TDs");
+                add("INTs");
+            }
+        };
+        TableView playerTable = GetPlayerTable("%%", cols, colnames);
+        pane.getChildren().addAll(playerTable);
+        return s;
+    }
+    public static TableView GetPlayerTable(String pos, ArrayList<String> cols, ArrayList<String> colnames){
         TableView playerTable = new TableView();
-
-        TableColumn pidCol = new TableColumn("PID");
-        pidCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("Pid"));
-
-        TableColumn nameCol = new TableColumn("Name");
-        nameCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, String>("Name"));
-
-        TableColumn teamCol = new TableColumn("Team");
-        teamCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("TeamName"));
-
-        TableColumn posCol = new TableColumn("Position");
-        posCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, String>("Position"));
-
-        TableColumn ypgCol = new TableColumn("YPG");
-        ypgCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Double>("YPG"));
-
-        TableColumn tdCol = new TableColumn("TDs");
-        tdCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("TDS"));
-
-        TableColumn intCol = new TableColumn("INTs");
-        intCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("INTS"));
-
+        for(int i = 0; i < cols.size(); i++){
+            TableColumn col = new TableColumn(colnames.get(i));
+            col.setCellValueFactory(
+                new PropertyValueFactory<NFLPlayer, Integer>(cols.get(i)));
+            playerTable.getColumns().add(col);
+        }
         Alert a = new Alert(AlertType.ERROR);
         ObservableList<NFLPlayer> playerData = null;
         try {
-            playerData = NFLPlayer.ListAll(connect);
+            playerData = NFLPlayer.ListAll(connect, pos);
         } catch(Exception e) {
             a.setContentText("Error loading players");
             System.err.println("Error loading players");
@@ -132,12 +141,10 @@ public class NFLPlayers extends Application {
         }
 
         playerTable.setItems(playerData);
-        playerTable.getColumns().addAll(pidCol, nameCol, teamCol, posCol, ypgCol, tdCol, intCol);
-        pane.getChildren().addAll(playerTable);
-        return s;
+        return playerTable;
     }
 
-    public static Scene GetFantasyTeamScene(){
+    public static Scene GetFantasyTeamScene(Stage primaryStage){
         GridPane pane = new GridPane();
         pane.setPadding(new Insets(100, 100, 100, 100));
         Scene s = new Scene(pane, 700, 700);
@@ -215,8 +222,17 @@ public class NFLPlayers extends Application {
                     FantasyTeam clickedRow = row.getItem();
                     Button addPlayer = new Button();
                     GridPane.setConstraints(addPlayer, 2, 5);
-                    pane.getChildren().removeAll(addPlayer, playerName);
-                    pane.getChildren().addAll(playerName, addPlayer);
+                    Button comparePlayers = new Button();
+                    GridPane.setConstraints(comparePlayers, 2, 6);
+                    comparePlayers.setText("Compare players to add");
+                    comparePlayers.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                             primaryStage.setScene(GetComparePlayersScene(clickedRow));
+                        }
+                    });
+                    pane.getChildren().removeAll(addPlayer, playerName, comparePlayers);
+                    pane.getChildren().addAll(playerName, addPlayer, comparePlayers);
                     addPlayer.setText("Add Player to team " + clickedRow.Name);
                     System.out.println("here");
                     addPlayer.setOnAction(new EventHandler<ActionEvent>() {
@@ -258,6 +274,176 @@ public class NFLPlayers extends Application {
         table.getColumns().addAll(teamNameCol, ownerCol);
         GridPane.setConstraints(table, 0, 5);
         pane.getChildren().addAll(label, table);
+        
+        return s;
+    }
+    
+    public static Scene GetComparePlayersScene(FantasyTeam team){
+        GridPane pane = new GridPane();
+        pane.setPadding(new Insets(100,10,100,10));
+        Scene s = new Scene(pane, 700, 700);
+        Alert a = new Alert(AlertType.ERROR);
+        ObservableList<String> options = FXCollections.emptyObservableList();
+        try{
+            options = NFLPlayer.ListPositions(connect);
+        }catch(Exception e){
+            a.setAlertType(AlertType.ERROR);
+            a.setContentText("Error getting positions");
+            System.err.println("Error getting positions");
+            a.show();
+        }
+        final ComboBox comboBox1 = new ComboBox(options);
+        //final ComboBox comboBox2 = new ComboBox(options);
+
+        ArrayList<String> cols = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("TeamName");
+                add("Position");
+            }
+        };
+        ArrayList<String> colnames = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("Team");
+                add("Pos");
+            }
+        };
+        final TableView playerTable1 = GetPlayerTable("%%", cols, colnames);
+        final TableView playerTable2 = GetPlayerTable("%%", cols, colnames);
+        GridPane.setConstraints(comboBox1, 1, 0);
+        //GridPane.setConstraints(comboBox2, 2, 0);
+        GridPane.setConstraints(playerTable1, 1, 1);
+        GridPane.setConstraints(playerTable2, 2, 1);
+        pane.setHgap(10);
+        pane.setVgap(2);
+        playerTable1.setRowFactory(tv -> {
+            TableRow<NFLPlayer> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
+                    && event.getClickCount() == 1) {
+
+                    NFLPlayer clickedRow = row.getItem();
+                    Button addPlayer = new Button();
+                    Text info = new Text();
+                    String fullPlayer = "PID: " + clickedRow.Pid + "\n" +
+                            "Name: " + clickedRow.Name + "\n" +
+                            "Team: " + clickedRow.TeamName + "\n" +
+                            "Position: " + clickedRow.Position + "\n" +
+                            "Height: " + clickedRow.Height + "\n" +
+                            "Weight: " + clickedRow.Weight + "\n" +
+                            "Speed: " + clickedRow.Speed + "\n" +
+                            "TDs: " + clickedRow.TDS + "\n" +
+                            "INTs: " + clickedRow.INTS + "\n" +
+                            "YPG: " + clickedRow.YPG + "\n";
+                    info.setText(fullPlayer);
+                    GridPane.setConstraints(info, 1, 3);
+                    
+                    GridPane.setConstraints(addPlayer, 1, 4);
+                    pane.getChildren().removeAll(addPlayer, info);
+                    pane.getChildren().addAll(addPlayer, info);
+                    addPlayer.setText("Add Player to team " + clickedRow.Name);
+                    addPlayer.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try{
+                                team.AddPlayer(connect, clickedRow.Pid);
+                                a.setAlertType(AlertType.CONFIRMATION);
+                                a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
+                                a.show();
+                            }catch(Exception e1){
+                                a.setAlertType(AlertType.ERROR);
+                                a.setContentText("Error adding player");
+                                System.err.println("Error adding player");
+                                a.show();
+                            }
+                        }
+                    });
+                }
+            });
+            return row;
+        });
+        playerTable2.setRowFactory(tv -> {
+            TableRow<NFLPlayer> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
+                    && event.getClickCount() == 1) {
+
+                    NFLPlayer clickedRow = row.getItem();
+                    Button addPlayer2 = new Button();
+                    Text info2 = new Text();
+                    String fullPlayer = "PID: " + clickedRow.Pid + "\n" +
+                            "PID: " + clickedRow.Name + "\n" +
+                            "Team: " + clickedRow.TeamName + "\n" +
+                            "Position: " + clickedRow.Position + "\n" +
+                            "Height: " + clickedRow.Height + "\n" +
+                            "Weight: " + clickedRow.Weight + "\n" +
+                            "Speed: " + clickedRow.Speed + "\n" +
+                            "TDs: " + clickedRow.TDS + "\n" +
+                            "INTs: " + clickedRow.INTS + "\n" +
+                            "YPG: " + clickedRow.YPG + "\n";
+                    info2.setText(fullPlayer);
+                    GridPane.setConstraints(info2, 2, 3);
+                    
+                    GridPane.setConstraints(addPlayer2, 2, 4);
+                    pane.getChildren().removeAll(addPlayer2, info2);
+                    pane.getChildren().addAll(addPlayer2, info2);
+                    addPlayer2.setText("Add Player to team " + clickedRow.Name);
+                    addPlayer2.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try{
+                                team.AddPlayer(connect, clickedRow.Pid);
+                                a.setAlertType(AlertType.CONFIRMATION);
+                                a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
+                                a.show();
+                            }catch(Exception e1){
+                                a.setAlertType(AlertType.ERROR);
+                                a.setContentText("Error adding player");
+                                System.err.println("Error adding player");
+                                a.show();
+                            }
+                        }
+                    });
+                }
+            });
+            return row;
+        });
+        comboBox1.valueProperty().addListener(new ChangeListener<String>() {
+            @Override 
+            public void changed(ObservableValue ov, String t, String t1) {
+                String pos1 = "none";                
+                pos1 = t1;
+                try {
+                    ObservableList<NFLPlayer> playerData = NFLPlayer.ListAll(connect, pos1);
+                    playerTable1.setItems(playerData);
+                    playerTable2.setItems(playerData);
+                } catch(Exception e) {
+                    a.setContentText("Error loading players");
+                    System.err.println("Error loading players");
+                    a.show();
+                }       
+                
+            }    
+        });
+        //comboBox2.valueProperty().addListener(new ChangeListener<String>() {
+        //    @Override 
+        //    public void changed(ObservableValue ov, String t, String t1) {
+        //        String pos2 = "none";                
+        //        pos2 = t1;
+        //        try {
+        //            ObservableList<NFLPlayer> playerData = NFLPlayer.ListAll(connect, pos2);
+        //            playerTable2.setItems(playerData);
+        //        } catch(Exception e) {
+        //           a.setContentText("Error loading players");
+        //            System.err.println("Error loading players");
+        //            a.show();
+        //        }                
+        //    }    
+        //});
+        pane.getChildren().addAll(playerTable1, playerTable2, comboBox1);//, comboBox2);
         
         return s;
     }

@@ -147,7 +147,7 @@ public class NFLPlayer {
         return player;
     }
     
-        public static ObservableList<NFLPlayer> ListAll(Connection con) throws SQLException{
+        public static ObservableList<NFLPlayer> ListAll(Connection con, String pos) throws SQLException{
 
             ObservableList<NFLPlayer> players = FXCollections.observableArrayList();
             PreparedStatement query = null;
@@ -156,7 +156,8 @@ public class NFLPlayer {
                 query = con.prepareStatement(
                     "select p.pid, p.tid, p.name, " +
                     "p.pos, p.ypg, p.td, p.int, p.heightIn, p.weightLb, p.speed "
-                            + "from group15.NFLPlayer p");
+                            + "from group15.NFLPlayer p where p.pos like ?");
+                query.setString(1, pos);
                 ResultSet rs = (ResultSet) query.executeQuery();
                 while (rs.next()) {
                     NFLPlayer player = new NFLPlayer();
@@ -194,5 +195,29 @@ public class NFLPlayer {
             }
             System.out.println(players.size());
             return players;
+        }
+        public static ObservableList<String> ListPositions(Connection con) throws SQLException{
+            ObservableList<String> positions = FXCollections.observableArrayList();
+            PreparedStatement query = null;
+            try {
+                query = con.prepareStatement(
+                    "select distinct p.pos from group15.NFLPlayer p");
+                ResultSet rs = (ResultSet) query.executeQuery();
+                while (rs.next()) {
+                    positions.add(rs.getString("pos"));
+                }
+            } catch (SQLException e ) {
+                System.err.println("SQLException information");
+                while(e != null){
+                    System.err.println("Error message: " + e.getMessage());
+                    System.err.println("SQLSTATE: " + e.getSQLState());
+                    System.err.println("Error Code: " + e.getErrorCode());
+                    e.printStackTrace();
+                    e = e.getNextException();
+                }
+            } finally {
+                if (query != null) { query.close(); }
+            }
+            return positions;
         }
 }
