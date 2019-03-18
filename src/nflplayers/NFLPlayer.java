@@ -22,6 +22,7 @@ public class NFLPlayer {
     int Pid;
     String Name;
     int Tid;
+    String TeamName;
     String Position;
     double YPG;
     int TDS;
@@ -51,6 +52,9 @@ public class NFLPlayer {
     public Integer getINTS() {
         return this.INTS;
     }
+    public String getTeamName(){
+        return this.TeamName;
+    }
     
     public static NFLPlayer GetById(Connection con, int id) throws SQLException{
         NFLPlayer player = new NFLPlayer();
@@ -67,6 +71,14 @@ public class NFLPlayer {
                 player.Pid = rs.getInt("pid");
                 player.Name = rs.getString("name");
                 player.Tid = rs.getInt("tid");
+                PreparedStatement query2 = con.prepareStatement(
+                        "select t.name from group15.NFLTeam t where t.tid = ?");
+                query2.setInt(1, player.Tid);
+                ResultSet rs2 = (ResultSet) query2.executeQuery();
+                while (rs2.next()) {
+                    player.TeamName = rs2.getString("name");
+                }
+                        
                 player.Position = rs.getString("pos");
                 player.TDS = rs.getInt("td");
                 player.INTS = rs.getInt("int");
@@ -105,6 +117,13 @@ public class NFLPlayer {
                 player.Pid = rs.getInt("pid");
                 player.Name = rs.getString("name");
                 player.Tid = rs.getInt("tid");
+                PreparedStatement query2 = con.prepareStatement(
+                        "select t.name from group15.NFLTeam t where t.tid = ?");
+                query2.setInt(1, player.Tid);
+                ResultSet rs2 = (ResultSet) query2.executeQuery();
+                while (rs2.next()) {
+                    player.TeamName = rs2.getString("name");
+                }
                 player.Position = rs.getString("pos");
                 player.TDS = rs.getInt("td");
                 player.INTS = rs.getInt("int");
@@ -144,6 +163,13 @@ public class NFLPlayer {
                     player.Pid = rs.getInt("pid");
                     player.Name = rs.getString("name");
                     player.Tid = rs.getInt("tid");
+                    PreparedStatement query2 = con.prepareStatement(
+                            "select t.name from group15.NFLTeam t where t.tid = ?");
+                    query2.setInt(1, player.Tid);
+                    ResultSet rs2 = (ResultSet) query2.executeQuery();
+                    while (rs2.next()) {
+                        player.TeamName = rs2.getString("name");
+                    }
                     player.Position = rs.getString("pos");
                     player.TDS = rs.getInt("td");
                     player.INTS = rs.getInt("int");

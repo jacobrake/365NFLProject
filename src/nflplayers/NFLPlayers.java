@@ -103,7 +103,7 @@ public class NFLPlayers extends Application {
 
         TableColumn teamCol = new TableColumn("Team");
         teamCol.setCellValueFactory(
-                new PropertyValueFactory<NFLPlayer, Integer>("Tid"));
+                new PropertyValueFactory<NFLPlayer, Integer>("TeamName"));
 
         TableColumn posCol = new TableColumn("Position");
         posCol.setCellValueFactory(
