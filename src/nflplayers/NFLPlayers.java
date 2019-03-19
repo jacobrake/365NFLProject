@@ -48,6 +48,7 @@ public class NFLPlayers extends Application {
     Scene fantasyScene;
     Scene playerScene;
     Scene compareScene;
+    static FantasyTeam team;
 
     @Override
     public void start(Stage primaryStage) {
@@ -59,13 +60,14 @@ public class NFLPlayers extends Application {
             e.printStackTrace();
         }
         
+        //final  FantasyTeam team;
         window = primaryStage;
         
         //CREATE BUTTONS------------------------------------------------------------
         Button newFantasyTeam = new Button("New Fantasy Team");
         //newFantasyTeam.setOnAction(e -> window.setScene(fantasyScene));
-        newFantasyTeam.setTranslateX(275);
-        newFantasyTeam.setTranslateY(300);
+        newFantasyTeam.setTranslateX(185);
+        newFantasyTeam.setTranslateY(220);
         newFantasyTeam.setOnAction(new EventHandler<ActionEvent>() {
  
             @Override
@@ -76,8 +78,8 @@ public class NFLPlayers extends Application {
         });      
         
         Button viewPlayers = new Button("View Players");
-        viewPlayers.setTranslateX(292);
-        viewPlayers.setTranslateY(300);
+        viewPlayers.setTranslateX(200);
+        viewPlayers.setTranslateY(250);
         viewPlayers.setOnAction(new EventHandler<ActionEvent>() {
  
             @Override
@@ -96,54 +98,54 @@ public class NFLPlayers extends Application {
                 window.setTitle("Welcome");
             }
         }); 
-
         
         Button back2 = new Button("Back");
-        //back.setTranslateY(-300);
-        back2.setOnAction(e -> window.setScene(mainScene));
+        back2.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                window.setScene(mainScene);
+                window.setTitle("Welcome");
+            }
+        }); 
+        
+        Button back3 = new Button("Back");
+        back3.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                window.setScene(fantasyScene);
+                window.setTitle("Fantasy Teams");
+            }
+        }); 
         
         //CREATE PLAYER TABLE--------------------------------------------------------
-        /*
-        ArrayList<String> cols = new ArrayList<String>(){
-            {
-                add("Pid");
-                add("Name");
-                add("TeamName");
-                add("Position");
-                add("YPG");
-                add("TDS");
-                add("INTS");
-            }
-        };
-        ArrayList<String> colnames = new ArrayList<String>(){
-            {
-                add("Pid");
-                add("Name");
-                add("Team");
-                add("Pos");
-                add("YPG");
-                add("TDs");
-                add("INTs");
-            }
-        };
-        
-        TableView playerTable = GetPlayerTable("%%", cols, colnames);
-        */
         TableView playerTable = GetNFLPlayerTable();
 
         //CREATE VBOXES AND SCENES----------------------------------------------------
-        VBox layoutMain = new VBox(20);
+        //VBox layoutMain = new VBox(20);
+        GridPane layoutMain = new GridPane();
+        layoutMain.setPadding(new Insets(100, 100, 100, 100));
         layoutMain.getChildren().addAll(newFantasyTeam, viewPlayers);
         mainScene = new Scene(layoutMain, 700, 700);
         
-        VBox layoutPlayer = new VBox(20);
-        layoutPlayer.getChildren().addAll(back, playerTable);
-        
+       // VBox layoutPlayer = new VBox(20);
+        GridPane layoutPlayer = new GridPane();
+        layoutPlayer.setPadding(new Insets(50, 50, 50, 50));    
+        back.setTranslateY(-175);
+        playerTable.setTranslateY(50);
+        layoutPlayer.getChildren().addAll(playerTable, back);     
         playerScene = new Scene(layoutPlayer, 700, 700);
         
-        VBox layoutFantasy = new VBox(10);
+        //VBox layoutFantasy = new VBox(10);
+        GridPane layoutFantasy = new GridPane();
+        layoutFantasy.setPadding(new Insets(50, 50, 50, 50));           
         layoutFantasy.getChildren().add(back2);
         
+        //VBox layoutCompare = new VBox(10);
+        GridPane layoutCompare = new GridPane();
+        layoutCompare.setPadding(new Insets(50, 50, 50, 50));   
+        layoutCompare.getChildren().add(back3);
         
         //CREATE FANTASY PAGE----------------------------------------------------
         
@@ -220,18 +222,22 @@ public class NFLPlayers extends Application {
                     && event.getClickCount() == 1) {
 
                     FantasyTeam clickedRow = row.getItem();
+                    team = row.getItem();
                     Button addPlayer = new Button();
                     GridPane.setConstraints(addPlayer, 2, 5);
                     
                     Button comparePlayers = new Button();
                     GridPane.setConstraints(comparePlayers, 2, 6);
                     comparePlayers.setText("Compare players to add");
-                    comparePlayers.setTranslateX(350);
-                    comparePlayers.setTranslateY(-35);
+                    //comparePlayers.setTranslateX(350);
+                    comparePlayers.setTranslateY(-160);
                     comparePlayers.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
-                             primaryStage.setScene(GetComparePlayersScene(clickedRow));
+                             //primaryStage.setScene(GetComparePlayersScene(clickedRow));
+                             window.setScene(compareScene);
+                             window.setTitle("Compare Players");
+
                         }
                     });
                     
@@ -283,6 +289,165 @@ public class NFLPlayers extends Application {
         fantasyScene = new Scene(layoutFantasy, 700, 700);
         
         //COMPARE PLAYERS SCENE--------------------------------------------------------
+
+        
+        ObservableList<String> options = FXCollections.emptyObservableList();
+        try{
+            options = NFLPlayer.ListPositions(connect);
+        }catch(Exception e){
+            a.setAlertType(AlertType.ERROR);
+            a.setContentText("Error getting positions");
+            System.err.println("Error getting positions");
+            a.show();
+        }
+        final ComboBox comboBox1 = new ComboBox(options);
+        //final ComboBox comboBox2 = new ComboBox(options);
+
+        ArrayList<String> cols = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("TeamName");
+                add("Position");
+            }
+        };
+        ArrayList<String> colnames = new ArrayList<String>(){
+            {
+                add("Pid");
+                add("Name");
+                add("Team");
+                add("Pos");
+            }
+        };
+        final TableView playerTable1 = GetPlayerTable("%%", cols, colnames);
+        final TableView playerTable2 = GetPlayerTable("%%", cols, colnames);
+        GridPane.setConstraints(comboBox1, 1, 0);
+        //GridPane.setConstraints(comboBox2, 2, 0);
+        GridPane.setConstraints(playerTable1, 1, 1);
+        GridPane.setConstraints(playerTable2, 2, 1);
+        //layoutCompare.setHgap(10);
+        //layoutCompare.setVgap(2);
+        playerTable1.setRowFactory(tv -> {
+            TableRow<NFLPlayer> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
+                    && event.getClickCount() == 1) {
+
+                    NFLPlayer clickedRow = row.getItem();
+                    Button addPlayer = new Button();
+                    Text info = new Text();
+                    String fullPlayer = "PID: " + clickedRow.Pid + "\n" +
+                            "Name: " + clickedRow.Name + "\n" +
+                            "Team: " + clickedRow.TeamName + "\n" +
+                            "Position: " + clickedRow.Position + "\n" +
+                            "Height: " + clickedRow.Height + "\n" +
+                            "Weight: " + clickedRow.Weight + "\n" +
+                            "Speed: " + clickedRow.Speed + "\n" +
+                            "TDs: " + clickedRow.TDS + "\n" +
+                            "INTs: " + clickedRow.INTS + "\n" +
+                            "YPG: " + clickedRow.YPG + "\n";
+                    info.setText(fullPlayer);
+                    GridPane.setConstraints(info, 1, 3);
+                    
+                    GridPane.setConstraints(addPlayer, 1, 4);
+                    layoutCompare.getChildren().removeAll(addPlayer, info);
+                    layoutCompare.getChildren().addAll(addPlayer, info);
+                    addPlayer.setText("Add Player to team " + clickedRow.Name);
+                    addPlayer.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try{
+                                team.AddPlayer(connect, clickedRow.Pid);
+                                a.setAlertType(AlertType.CONFIRMATION);
+                                a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
+                                a.show();
+                            }catch(Exception e1){
+                                a.setAlertType(AlertType.ERROR);
+                                a.setContentText("Error adding player");
+                                System.err.println("Error adding player");
+                                a.show();
+                            }
+                        }
+                    });
+                }
+            });
+            return row;
+        });
+        playerTable2.setRowFactory(tv -> {
+            TableRow<NFLPlayer> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
+                    && event.getClickCount() == 1) {
+
+                    NFLPlayer clickedRow = row.getItem();
+                    Button addPlayer2 = new Button();
+                    Text info2 = new Text();
+                    String fullPlayer = "PID: " + clickedRow.Pid + "\n" +
+                            "PID: " + clickedRow.Name + "\n" +
+                            "Team: " + clickedRow.TeamName + "\n" +
+                            "Position: " + clickedRow.Position + "\n" +
+                            "Height: " + clickedRow.Height + "\n" +
+                            "Weight: " + clickedRow.Weight + "\n" +
+                            "Speed: " + clickedRow.Speed + "\n" +
+                            "TDs: " + clickedRow.TDS + "\n" +
+                            "INTs: " + clickedRow.INTS + "\n" +
+                            "YPG: " + clickedRow.YPG + "\n";
+                    info2.setText(fullPlayer);
+                    GridPane.setConstraints(info2, 2, 3);
+                    
+                    GridPane.setConstraints(addPlayer2, 2, 4);
+                    layoutCompare.getChildren().removeAll(addPlayer2, info2);
+                    //info2.setTranslateX(300);
+                    //info2.setTranslateY(-220);
+                    //addPlayer2.setTranslateX(300);
+                    //addPlayer2.setTranslateY(-220);
+
+                    layoutCompare.getChildren().addAll(addPlayer2, info2);
+                    addPlayer2.setText("Add Player to team " + clickedRow.Name);
+                    addPlayer2.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try{
+                                team.AddPlayer(connect, clickedRow.Pid);
+                                a.setAlertType(AlertType.CONFIRMATION);
+                                a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
+                                a.show();
+                            }catch(Exception e1){
+                                a.setAlertType(AlertType.ERROR);
+                                a.setContentText("Error adding player");
+                                System.err.println("Error adding player");
+                                a.show();
+                            }
+                        }
+                    });
+                }
+            });
+            return row;
+        });
+        comboBox1.valueProperty().addListener(new ChangeListener<String>() {
+            @Override 
+            public void changed(ObservableValue ov, String t, String t1) {
+                String pos1 = "none";                
+                pos1 = t1;
+                try {
+                    ObservableList<NFLPlayer> playerData = NFLPlayer.ListAll(connect, pos1);
+                    playerTable1.setItems(playerData);
+                    playerTable2.setItems(playerData);
+                } catch(Exception e) {
+                    a.setContentText("Error loading players");
+                    System.err.println("Error loading players");
+                    a.show();
+                }       
+                
+            }    
+        });
+        
+        //playerTable2.setTranslateX(275);
+        //playerTable2.setTranslateY(-320);
+        comboBox1.setTranslateX(10);
+        //comboBox1.setTranslateY(-675);
+        layoutCompare.getChildren().addAll(playerTable1, playerTable2, comboBox1);//, comboBox2);
+        compareScene = new Scene(layoutCompare, 700, 700);
 
  
         //SET STARTUP WINDOW--------------------------------------------------------
@@ -520,7 +685,7 @@ public class NFLPlayers extends Application {
                     comparePlayers.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
-                             primaryStage.setScene(GetComparePlayersScene(clickedRow));
+                             //primaryStage.setScene(GetComparePlayersScene(clickedRow));
                         }
                     });
                     pane.getChildren().removeAll(addPlayer, playerName, comparePlayers);
