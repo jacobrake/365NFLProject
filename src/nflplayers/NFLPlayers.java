@@ -32,6 +32,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.collections.FXCollections;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.control.ComboBox;
 
 
@@ -64,10 +67,10 @@ public class NFLPlayers extends Application {
         window = primaryStage;
         
         //CREATE BUTTONS------------------------------------------------------------
-        Button newFantasyTeam = new Button("New Fantasy Team");
+        Button newFantasyTeam = new Button("Manage Fantasy Teams");
         //newFantasyTeam.setOnAction(e -> window.setScene(fantasyScene));
-        newFantasyTeam.setTranslateX(185);
-        newFantasyTeam.setTranslateY(220);
+        //newFantasyTeam.setTranslateX(185);
+        //newFantasyTeam.setTranslateY(220);
         newFantasyTeam.setOnAction(new EventHandler<ActionEvent>() {
  
             @Override
@@ -78,8 +81,8 @@ public class NFLPlayers extends Application {
         });      
         
         Button viewPlayers = new Button("View Players");
-        viewPlayers.setTranslateX(200);
-        viewPlayers.setTranslateY(250);
+        //viewPlayers.setTranslateX(200);
+        //viewPlayers.setTranslateY(250);
         viewPlayers.setOnAction(new EventHandler<ActionEvent>() {
  
             @Override
@@ -88,6 +91,13 @@ public class NFLPlayers extends Application {
                 window.setTitle("NFL Players");
             }
         });  
+        
+        viewPlayers.setStyle("-fx-background-color: darkslateblue; -fx-text-fill: white; -fx-font: normal bold 20px 'serif';"); 
+        newFantasyTeam.setStyle("-fx-background-color: darkslateblue; -fx-text-fill: white; -fx-font: normal bold 20px 'serif';");
+        
+        Text title = new Text();
+        title.setText("Welcome to NFL Players");
+        title.setStyle("-fx-text-fill: NAVY; -fx-font: normal bold 30px 'serif';");
         
         Button back = new Button("Back");
         back.setOnAction(new EventHandler<ActionEvent>() {
@@ -126,8 +136,17 @@ public class NFLPlayers extends Application {
         //VBox layoutMain = new VBox(20);
         GridPane layoutMain = new GridPane();
         layoutMain.setPadding(new Insets(100, 100, 100, 100));
-        layoutMain.getChildren().addAll(newFantasyTeam, viewPlayers);
+        GridPane.setRowIndex(newFantasyTeam, 1);
+        GridPane.setRowIndex(viewPlayers, 2);
+        newFantasyTeam.setMaxWidth(Double.MAX_VALUE);
+        viewPlayers.setMaxWidth(Double.MAX_VALUE);
+        
+        layoutMain.setVgap(20);
+        layoutMain.setAlignment(Pos.CENTER);
+        
+        layoutMain.getChildren().addAll(newFantasyTeam, viewPlayers, title);
         mainScene = new Scene(layoutMain, 700, 700);
+        layoutMain.setStyle("-fx-background-color: ALICEBLUE;");
         
        // VBox layoutPlayer = new VBox(20);
         GridPane layoutPlayer = new GridPane();
@@ -136,16 +155,20 @@ public class NFLPlayers extends Application {
         playerTable.setTranslateY(50);
         layoutPlayer.getChildren().addAll(playerTable, back);     
         playerScene = new Scene(layoutPlayer, 700, 700);
+        layoutPlayer.setStyle("-fx-background-color: ALICEBLUE;");
         
         //VBox layoutFantasy = new VBox(10);
         GridPane layoutFantasy = new GridPane();
         layoutFantasy.setPadding(new Insets(50, 50, 50, 50));           
         layoutFantasy.getChildren().add(back2);
+        layoutFantasy.setStyle("-fx-background-color: ALICEBLUE;");
         
         //VBox layoutCompare = new VBox(10);
         GridPane layoutCompare = new GridPane();
         layoutCompare.setPadding(new Insets(50, 50, 50, 50));   
+        GridPane.setConstraints(back3, 1, 0);
         layoutCompare.getChildren().add(back3);
+        layoutCompare.setStyle("-fx-background-color: ALICEBLUE;");
         
         //CREATE FANTASY PAGE----------------------------------------------------
         
@@ -212,11 +235,15 @@ public class NFLPlayers extends Application {
             System.err.println("Error loading fantasy teams");
             a.show();
         }
+        final Text playersInfo = new Text();
+        GridPane.setConstraints(playersInfo, 1, 5);
+        playersInfo.setText("");
+        layoutFantasy.getChildren().add(playersInfo);
         table.setRowFactory(tv -> {
         TableRow<FantasyTeam> row = new TableRow<>();
         final TextField playerName = new TextField();
         playerName.setPromptText("Search for player to add");
-        GridPane.setConstraints(playerName, 1, 5);
+        GridPane.setConstraints(playerName, 0, 6);
         row.setOnMouseClicked(event -> {
                 if (! row.isEmpty() && event.getButton()==MouseButton.PRIMARY 
                     && event.getClickCount() == 1) {
@@ -224,13 +251,26 @@ public class NFLPlayers extends Application {
                     FantasyTeam clickedRow = row.getItem();
                     team = row.getItem();
                     Button addPlayer = new Button();
-                    GridPane.setConstraints(addPlayer, 2, 5);
+                    addPlayer.setMaxWidth(Double.MAX_VALUE);
+                    GridPane.setConstraints(addPlayer, 1, 6);
+                    String players = "Players:\n";
+                    ArrayList<String> playerList = new ArrayList<String>();
+                    try{
+                        playerList = NFLPlayer.ListByTeam(connect, team.FTid);
+                    }catch (Exception e){
+                        a.setAlertType(AlertType.ERROR);
+                        a.setHeaderText("Error");
+                        a.setContentText("Error getting players");
+                        a.show();
+                    }
+                    for(String p : playerList){
+                        players += "\t" + p + "\n";
+                    }
+                    playersInfo.setText(players);
                     
                     Button comparePlayers = new Button();
-                    GridPane.setConstraints(comparePlayers, 2, 6);
+                    GridPane.setConstraints(comparePlayers, 1, 7);
                     comparePlayers.setText("Compare players to add");
-                    //comparePlayers.setTranslateX(350);
-                    comparePlayers.setTranslateY(-160);
                     comparePlayers.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
@@ -253,6 +293,7 @@ public class NFLPlayers extends Application {
                                 System.out.println("here2");
                                 NFLPlayer player = NFLPlayer.GetByName(connect, playerName.getText());
                                 if(player.Pid == 0){
+                                    a.setAlertType(AlertType.ERROR);
                                     a.setHeaderText("Error");
                                     a.setContentText("Player Not Found");
                                     a.show();
@@ -270,6 +311,7 @@ public class NFLPlayers extends Application {
                                     }
                                 }
                             }catch(Exception e){
+                                a.setAlertType(AlertType.ERROR);
                                 a.setContentText("Error searching database for player");
                                 System.err.println("Error searching database for player");
                                 a.show();
@@ -284,8 +326,9 @@ public class NFLPlayers extends Application {
         table.setItems(ftData);
         table.getColumns().addAll(teamNameCol, ownerCol);
         GridPane.setConstraints(table, 0, 5);
-        
-        layoutFantasy.getChildren().addAll(label, table);        
+        layoutFantasy.setHgap(5);
+        layoutFantasy.setVgap(5);
+        layoutFantasy.getChildren().addAll(label, table);
         fantasyScene = new Scene(layoutFantasy, 700, 700);
         
         //COMPARE PLAYERS SCENE--------------------------------------------------------
@@ -321,10 +364,15 @@ public class NFLPlayers extends Application {
         };
         final TableView playerTable1 = GetPlayerTable("%%", cols, colnames);
         final TableView playerTable2 = GetPlayerTable("%%", cols, colnames);
-        GridPane.setConstraints(comboBox1, 1, 0);
+        GridPane.setConstraints(comboBox1, 2, 0);
         //GridPane.setConstraints(comboBox2, 2, 0);
         GridPane.setConstraints(playerTable1, 1, 1);
         GridPane.setConstraints(playerTable2, 2, 1);
+        GridPane layoutCompare1 = new GridPane();
+        GridPane layoutCompare2 = new GridPane();
+        GridPane.setConstraints(layoutCompare1, 1, 2);
+        GridPane.setConstraints(layoutCompare2, 2, 2);
+        layoutCompare.getChildren().addAll(layoutCompare1, layoutCompare2);
         //layoutCompare.setHgap(10);
         //layoutCompare.setVgap(2);
         playerTable1.setRowFactory(tv -> {
@@ -336,6 +384,8 @@ public class NFLPlayers extends Application {
                     NFLPlayer clickedRow = row.getItem();
                     Button addPlayer = new Button();
                     Text info = new Text();
+                    layoutCompare1.getChildren().clear();
+                    
                     String fullPlayer = "PID: " + clickedRow.Pid + "\n" +
                             "Name: " + clickedRow.Name + "\n" +
                             "Team: " + clickedRow.TeamName + "\n" +
@@ -347,12 +397,11 @@ public class NFLPlayers extends Application {
                             "INTs: " + clickedRow.INTS + "\n" +
                             "YPG: " + clickedRow.YPG + "\n";
                     info.setText(fullPlayer);
-                    GridPane.setConstraints(info, 1, 3);
+                    GridPane.setConstraints(info, 1, 1);
                     
-                    GridPane.setConstraints(addPlayer, 1, 4);
-                    layoutCompare.getChildren().removeAll(addPlayer, info);
-                    layoutCompare.getChildren().addAll(addPlayer, info);
-                    addPlayer.setText("Add Player to team " + clickedRow.Name);
+                    GridPane.setConstraints(addPlayer, 1, 2);
+                    layoutCompare1.getChildren().addAll(addPlayer, info);
+                    addPlayer.setText("Add Player " + clickedRow.Name + " to team " + team.Name);
                     addPlayer.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
@@ -393,17 +442,17 @@ public class NFLPlayers extends Application {
                             "INTs: " + clickedRow.INTS + "\n" +
                             "YPG: " + clickedRow.YPG + "\n";
                     info2.setText(fullPlayer);
-                    GridPane.setConstraints(info2, 2, 3);
+                    GridPane.setConstraints(info2, 2, 1);
                     
-                    GridPane.setConstraints(addPlayer2, 2, 4);
-                    layoutCompare.getChildren().removeAll(addPlayer2, info2);
+                    GridPane.setConstraints(addPlayer2, 2, 2);
+                    layoutCompare2.getChildren().clear();
                     //info2.setTranslateX(300);
                     //info2.setTranslateY(-220);
                     //addPlayer2.setTranslateX(300);
                     //addPlayer2.setTranslateY(-220);
 
-                    layoutCompare.getChildren().addAll(addPlayer2, info2);
-                    addPlayer2.setText("Add Player to team " + clickedRow.Name);
+                    layoutCompare2.getChildren().addAll(addPlayer2, info2);
+                    addPlayer2.setText("Add Player " + clickedRow.Name + " to team " + team.Name);
                     addPlayer2.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {

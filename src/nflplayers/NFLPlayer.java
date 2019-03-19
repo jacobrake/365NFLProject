@@ -177,7 +177,6 @@ public class NFLPlayer {
                     player.Height = rs.getDouble("heightIn");
                     player.Weight = rs.getDouble("weightLb");
                     player.Speed = rs.getDouble("speed");
-                    System.out.println(player.Pid + " " + player.Name + " " + player.Tid);
                     players.add(player);
                 }
             } catch (SQLException e ) {
@@ -192,7 +191,6 @@ public class NFLPlayer {
             } finally {
                 if (query != null) { query.close(); }
             }
-            System.out.println(players.size());
             return players;
         }        
         
@@ -227,7 +225,6 @@ public class NFLPlayer {
                     player.Height = rs.getDouble("heightIn");
                     player.Weight = rs.getDouble("weightLb");
                     player.Speed = rs.getDouble("speed");
-                    System.out.println(player.Pid + " " + player.Name + " " + player.Tid);
                     players.add(player);
                 }
             } catch (SQLException e ) {
@@ -242,7 +239,6 @@ public class NFLPlayer {
             } finally {
                 if (query != null) { query.close(); }
             }
-            System.out.println(players.size());
             return players;
         }
         public static ObservableList<String> ListPositions(Connection con) throws SQLException{
@@ -268,5 +264,31 @@ public class NFLPlayer {
                 if (query != null) { query.close(); }
             }
             return positions;
+        }
+        public static ArrayList<String> ListByTeam(Connection con, int ftid) throws SQLException{
+            ArrayList<String> players = new ArrayList<String>();
+            PreparedStatement query = null;
+            try {
+                query = con.prepareStatement(
+                    "select distinct p.name, p.pos from group15.NFLPlayer p inner join group15.FantasyTeamNFLPlayer ftnp on ftnp.pid = p.pid"
+                            + " where ftnp.ftid = ?");
+                query.setInt(1, ftid);
+                ResultSet rs = (ResultSet) query.executeQuery();
+                while (rs.next()) {
+                    players.add(rs.getString("name") + " " + rs.getString("pos"));
+                }
+            } catch (SQLException e ) {
+                System.err.println("SQLException information");
+                while(e != null){
+                    System.err.println("Error message: " + e.getMessage());
+                    System.err.println("SQLSTATE: " + e.getSQLState());
+                    System.err.println("Error Code: " + e.getErrorCode());
+                    e.printStackTrace();
+                    e = e.getNextException();
+                }
+            } finally {
+                if (query != null) { query.close(); }
+            }
+            return players;
         }
 }
