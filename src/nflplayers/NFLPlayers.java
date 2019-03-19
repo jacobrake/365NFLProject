@@ -182,6 +182,7 @@ public class NFLPlayers extends Application {
         GridPane.setConstraints(owner, 0, 2);
         layoutFantasy.getChildren().add(owner);
         
+        TableView table = new TableView();
         Button btn = new Button();
         btn.setText("Add Fantasy Team");
         Alert a = new Alert(AlertType.ERROR);
@@ -205,6 +206,15 @@ public class NFLPlayers extends Application {
                 a.show();
                 owner.clear();
                 name.clear();
+                ObservableList<FantasyTeam> ftData2 = null;
+                try{
+                    ftData2 = FantasyTeam.ListAll(connect);
+                }catch(Exception e){
+                    a.setContentText("Error loading fantasy teams");
+                    System.err.println("Error loading fantasy teams");
+                    a.show();
+                }
+                table.setItems(ftData2);
             }
         });
         GridPane.setConstraints(btn, 1, 2);
@@ -216,7 +226,6 @@ public class NFLPlayers extends Application {
         GridPane.setConstraints(label, 0, 4);
         
         
-        TableView table = new TableView();
         table.setEditable(false);
         TableColumn teamNameCol = new TableColumn("Team Name");
         teamNameCol.setMinWidth(100);
@@ -301,10 +310,12 @@ public class NFLPlayers extends Application {
                                     try{
                                         clickedRow.AddPlayer(connect, player.Pid);
                                         a.setAlertType(AlertType.CONFIRMATION);
+                                        a.setHeaderText("Success");
                                         a.setContentText("Successfully added " + player.Name + " to team " + clickedRow.Name);
                                         a.show();
                                     }catch(Exception e1){
                                         a.setAlertType(AlertType.ERROR);
+                                        a.setHeaderText("Error");
                                         a.setContentText("Error adding player");
                                         System.err.println("Error adding player");
                                         a.show();
@@ -312,6 +323,7 @@ public class NFLPlayers extends Application {
                                 }
                             }catch(Exception e){
                                 a.setAlertType(AlertType.ERROR);
+                                a.setHeaderText("Error");
                                 a.setContentText("Error searching database for player");
                                 System.err.println("Error searching database for player");
                                 a.show();
@@ -339,6 +351,7 @@ public class NFLPlayers extends Application {
             options = NFLPlayer.ListPositions(connect);
         }catch(Exception e){
             a.setAlertType(AlertType.ERROR);
+            a.setHeaderText("Error");
             a.setContentText("Error getting positions");
             System.err.println("Error getting positions");
             a.show();
@@ -408,10 +421,12 @@ public class NFLPlayers extends Application {
                             try{
                                 team.AddPlayer(connect, clickedRow.Pid);
                                 a.setAlertType(AlertType.CONFIRMATION);
+                                a.setHeaderText("Success");
                                 a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
                                 a.show();
                             }catch(Exception e1){
                                 a.setAlertType(AlertType.ERROR);
+                                a.setHeaderText("Error");
                                 a.setContentText("Error adding player");
                                 System.err.println("Error adding player");
                                 a.show();
@@ -459,10 +474,12 @@ public class NFLPlayers extends Application {
                             try{
                                 team.AddPlayer(connect, clickedRow.Pid);
                                 a.setAlertType(AlertType.CONFIRMATION);
+                                a.setHeaderText("Success");
                                 a.setContentText("Successfully added " + clickedRow.Name + " to team " + team.Name);
                                 a.show();
                             }catch(Exception e1){
                                 a.setAlertType(AlertType.ERROR);
+                                a.setHeaderText("Error");
                                 a.setContentText("Error adding player");
                                 System.err.println("Error adding player");
                                 a.show();
@@ -483,6 +500,8 @@ public class NFLPlayers extends Application {
                     playerTable1.setItems(playerData);
                     playerTable2.setItems(playerData);
                 } catch(Exception e) {
+                    a.setAlertType(AlertType.ERROR);
+                    a.setHeaderText("Error");
                     a.setContentText("Error loading players");
                     System.err.println("Error loading players");
                     a.show();
